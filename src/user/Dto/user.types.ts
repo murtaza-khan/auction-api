@@ -6,6 +6,7 @@ import {
   IsEnum,
   IsObject,
   IsNotEmptyObject,
+  IsOptional,
 } from 'class-validator';
 import { Location } from '../../item/Dto/item.types';
 import { UserRole } from '../../common/enums';
@@ -42,6 +43,13 @@ class UserDto {
   @IsString()
   @IsNotEmpty()
   password: string;
+
+  @ApiProperty({
+    type: String,
+  })
+  @IsString()
+  @IsNotEmpty()
+  notificationToken: string;
 
   @ApiProperty({
     type: String,
@@ -121,4 +129,35 @@ class UpdateBidDto {
   @IsNotEmpty()
   bidPrice: string;
 }
-export { UserDto, DefaultMessageType, LoginDto, BidDto, UpdateBidDto };
+
+class NotificationDto {
+  @ApiProperty({
+    type: String,
+  })
+  @IsString()
+  @IsNotEmpty()
+  title: string;
+
+  @ApiProperty({
+    type: String,
+  })
+  @IsString()
+  @IsNotEmpty()
+  message: string;
+
+  @ApiProperty({
+    type: String,
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  email: string;
+}
+export {
+  UserDto,
+  DefaultMessageType,
+  LoginDto,
+  BidDto,
+  UpdateBidDto,
+  NotificationDto,
+};

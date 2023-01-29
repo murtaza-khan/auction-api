@@ -8,12 +8,14 @@ import {
 } from '../common/wrappers';
 import { UserDocument } from './models/user.model';
 import { BidDocument } from './models/bid.model';
+import { NotificationsService } from '../common/services/notification.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectModel('User') private readonly userModel: Model<UserDocument>,
     @InjectModel('Bid') private readonly bidModel: Model<BidDocument>,
+    private notificationService: NotificationsService,
   ) {}
 
   async save(userData: any): Promise<any> {
@@ -135,6 +137,28 @@ export class UserService {
     try {
       const response = await this.bidModel.findByIdAndDelete(id);
       return constructSuccessResponse(response, 'Bid deleted successfully!');
+    } catch (error) {
+      return error;
+    }
+  }
+
+  async sendNotification(data: any): Promise<any> {
+    try {
+      let pushNotificationPayload = [];
+      const users = await this.userModel.find();
+      for (const user of users) {
+        if (user.notificationToken) {
+          pushNotificationPayload.push({
+            title: data.title,
+            message: data.message,
+            token: user.notificationToken,
+          });
+        }
+      }
+      const response = await this.notificationService.sendFirebaseMessages(
+        pushNotificationPayload,
+      );
+      return constructSuccessResponse(response);
     } catch (error) {
       return error;
     }

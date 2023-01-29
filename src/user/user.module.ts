@@ -9,6 +9,7 @@ import { UserSchema } from './models/user.model';
 import { ItemModule } from '../item/item.module';
 import { BidSchema } from './models/bid.model';
 import { BidController } from './bid.controller';
+import { ChatGateway, NotificationsService } from '../common/services';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { BidController } from './bid.controller';
     forwardRef(() => AuthModule),
     forwardRef(() => ItemModule),
   ],
-  providers: [UserService],
+  providers: [UserService, NotificationsService,ChatGateway],
   exports: [UserService],
   controllers: [UserController, BidController],
 })

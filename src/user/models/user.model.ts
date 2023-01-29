@@ -25,6 +25,9 @@ export class User extends BaseModel {
   @Prop()
   password: string;
 
+  @Prop()
+  notificationToken: string;
+
   @Prop({ type: String, enum: UserRole })
   userRole: string;
 

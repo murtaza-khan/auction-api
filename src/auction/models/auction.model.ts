@@ -3,7 +3,7 @@ import * as mongoose from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 import { BaseModel } from '../../common/base.model';
-import { Item } from 'src/item/models/item.model';
+import { Item } from '../../item/models/item.model';
 
 export type AuctionDocument = HydratedDocument<Auction>;
 

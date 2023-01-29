@@ -13,18 +13,16 @@ import { AuthGuard } from '@nestjs/passport';
 import { ItemService } from './item.service';
 import { ItemDto, UpdateItemDto } from './Dto/item.types';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { MyAuthGuard } from '../auth/authGuard';
-import { Roles } from 'src/common/roles.decorator';
-import { UserRole } from 'src/common/enums';
-import { Public } from 'src/auth/public.decorator';
+import { Roles } from '../common/roles.decorator';
+import { UserRole } from '../common/enums';
+import { Public } from '../auth/public.decorator';
 
 @Controller('')
 @ApiTags('Items')
-@Roles(UserRole.ADMIN)
 export class ItemController {
   constructor(private itemService: ItemService) {}
-
-  @ApiBearerAuth()
+  
+  @Roles(UserRole.ADMIN)
   @Post('item')
   async createItem(@Body() data: ItemDto): Promise<any> {
     return this.itemService.createItem(data);
@@ -42,7 +40,7 @@ export class ItemController {
     return this.itemService.findItemById(id);
   }
 
-  @ApiBearerAuth()
+  @Roles(UserRole.ADMIN)
   @Patch('item/:id')
   async updateItemById(
     @Param('id') id: string,
@@ -51,7 +49,7 @@ export class ItemController {
     return this.itemService.updateItemById(id, data);
   }
 
-  @ApiBearerAuth()
+  @Roles(UserRole.ADMIN)
   @Delete('item/:id')
   async deleteItem(@Param('id') id: string): Promise<any> {
     return this.itemService.deleteItem(id);

@@ -8,7 +8,6 @@ async function bootstrap() {
   app.enableCors();
 
   app.useGlobalPipes(new ValidationPipe());
-
   const config = new DocumentBuilder()
     .setTitle('Auction')
     .setDescription('Auction APIs Documentation')

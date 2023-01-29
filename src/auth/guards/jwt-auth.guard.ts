@@ -20,6 +20,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   }
 
   handleRequest(err, isAuthenticated, info) {
+    
     if (err || !isAuthenticated) {
       if (info && info.message) {
         if (info.message === 'No auth token') {

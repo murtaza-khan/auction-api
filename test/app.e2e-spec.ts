@@ -1,54 +1,67 @@
-import { Test, TestingModule } from '@nestjs/testing'
-import { getModelToken, MongooseModule } from '@nestjs/mongoose';
+import { Test, TestingModule } from '@nestjs/testing';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import request from 'supertest'
-import { factory } from 'fakingoose'
+import mongoose, { Connection, connect, Model } from 'mongoose';
+import { Item, ItemSchema } from '../src/item/models/item.model';
+import * as request from 'supertest';
 
-describe('Auth controller', () => {
-    let catModel;
-    let app;
-    const catFactory = factory<CatDocument>(CatDocument, {}).setGlobalObjectIdOptions({ tostring: false })
-    beforeAll(async () => {
-        const moduleFixture: TestingModule = await Test.createTestingModule({
-            imports: [MongooseModule.forRootAsync({
-                useFactory: async () => {
-                    const mongod = new MongoMemoryServer();
-                    const uri = await mongod.getUri();
-                    return {
-                        uri: uri
-                    }
-                }
-            }), CatModule]
-        })
-            .compile()
+import { INestApplication } from '@nestjs/common';
+import { AppModule } from '../src/app.module';
 
+describe('AppController', () => {
+  let app: INestApplication;
 
+  let mongod: MongoMemoryServer;
+  let mongoConnection: Connection;
+  let itemModel: Model<Item>;
 
-        app = moduleFixture.createNestApplication()
-        catModel = moduleFixture.get<Model<CatDocument>>(getModelToken(Cat.name))
-        await app.init()
-    })
+  beforeAll(async () => {
+    mongod = await MongoMemoryServer.create();
+    const uri = mongod.getUri();
+    mongoose.set('strictQuery', false);
+    mongoConnection = (await connect(uri)).connection;
+    itemModel = mongoConnection.model('Item', ItemSchema);
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
 
-    beforeEach(() => {
-        // populate the DB with 1 cat using fakingoose
-        const mockCat = catFactory.generate()
-        return catModel.create(mockCat)
-    })
+    app = moduleFixture.createNestApplication();
+    await app.init();
+  });
 
-    afterEach(() =>
-        catModel.remove({})
-    )
+  afterAll(async () => {
+    await mongoConnection.dropDatabase();
+    await mongoConnection.close();
+    await mongod.stop();
+    await app.close();
+  });
 
-    it('GET /cats', () => {
-        return request(app.getHttpServer())
-            .get('/cats')
-            .expect(200)
-            .expect(res => {
-                expect(res.body.length > 0).toBe(true)
-            })
-    })
+  afterEach(async () => {
+    const collections = mongoConnection.collections;
+    for (const key in collections) {
+      const collection = collections[key];
+      await collection.deleteMany({});
+    }
+  });
 
-    afterAll(() => {
-        app.close()
-    })
-})
+  it('should create a coupon for selected products', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/item/')
+      .send({
+        name: 'Mac2023',
+        price: '200000',
+        category: 'computer',
+        brand: 'apple',
+        location: {
+          lat: '0.0222555',
+          long: '23544847',
+        },
+      })
+      .set(
+        'Authorization',
+        'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Im11cnRhemFraGFuQGdtYWlsLmNvbSIsInN1YiI6IjYzZDJiYzJmZWNjMmY3ZGYyODNjZjBmNyIsInVzZXJSb2xlIjoiQURNSU4iLCJpYXQiOjE2NzUwMTU3MTh9.2UAV7qtQlsvf38rM5VZb1zSPY2csjwOTjy5-AeNQuHY',
+      );
+
+    const responseBody = { ...response.body };
+    expect(responseBody.success).toEqual(true);
+  });
+});

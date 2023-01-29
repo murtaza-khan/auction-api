@@ -9,7 +9,6 @@ import {
   Patch,
   Delete,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { ItemService } from './item.service';
 import { ItemDto, UpdateItemDto } from './Dto/item.types';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -18,12 +17,13 @@ import { UserRole } from '../common/enums';
 import { Public } from '../auth/public.decorator';
 
 @Controller('')
+@ApiBearerAuth('JWT-auth')
 @ApiTags('Items')
 export class ItemController {
   constructor(private itemService: ItemService) {}
-  
-  @Roles(UserRole.ADMIN)
+
   @Post('item')
+  @Roles(UserRole.ADMIN)
   async createItem(@Body() data: ItemDto): Promise<any> {
     return this.itemService.createItem(data);
   }

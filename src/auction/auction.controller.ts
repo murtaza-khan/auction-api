@@ -18,12 +18,13 @@ import { AuctionService } from './auction.service';
 import { AuctionDto, UpdateAuctionDto } from './Dto/auction.types';
 
 @Controller('')
+@ApiBearerAuth('JWT-auth')
 @ApiTags('Auction')
 export class AuctionController {
   constructor(private auctionService: AuctionService) {}
 
-  @Roles(UserRole.ADMIN)
   @Post('auction')
+  @Roles(UserRole.ADMIN)
   async createAuction(@Body() data: AuctionDto): Promise<any> {
     return this.auctionService.createAuctions(data);
   }
@@ -40,8 +41,8 @@ export class AuctionController {
     return this.auctionService.findAuctionById(id);
   }
 
-  @Roles(UserRole.ADMIN)
   @Patch('auction/:id')
+  @Roles(UserRole.ADMIN)
   async updateAuctionById(
     @Param('id') id: string,
     @Body() data: UpdateAuctionDto,
@@ -49,8 +50,8 @@ export class AuctionController {
     return this.auctionService.updateAuctionById(id, data);
   }
 
-  @Roles(UserRole.ADMIN)
   @Delete('auction/:id')
+  @Roles(UserRole.ADMIN)
   async deleteAuction(@Param('id') id: string): Promise<any> {
     return this.auctionService.deleteAuction(id);
   }

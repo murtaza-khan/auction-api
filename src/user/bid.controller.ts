@@ -9,19 +9,20 @@ import {
   Patch,
   Delete,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '../common/enums';
 import { Roles } from '../common/roles.decorator';
 import { BidDto, UpdateBidDto } from './Dto/user.types';
 import { UserService } from './user.service';
 
 @Controller('')
+@ApiBearerAuth('JWT-auth')
 @ApiTags('Bids')
 export class BidController {
   constructor(private userService: UserService) {}
 
-  @Roles(UserRole.USER)
   @Post('bid')
+  @Roles(UserRole.USER)
   async createBid(@Body() data: BidDto): Promise<any> {
     return this.userService.createBid(data);
   }
@@ -36,8 +37,8 @@ export class BidController {
     return this.userService.findBidById(id);
   }
 
-  @Roles(UserRole.USER)
   @Get('user/bids')
+  @Roles(UserRole.USER)
   async getBidByUserId(@Request() req: any): Promise<any> {
     return this.userService.findBidByUserId(req.user.user);
   }

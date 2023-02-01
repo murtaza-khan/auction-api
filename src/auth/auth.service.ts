@@ -1,9 +1,5 @@
 import * as bcrypt from 'bcrypt';
-import {
-  Injectable,
-  Inject,
-  forwardRef,
-} from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
@@ -11,6 +7,7 @@ import {
   constructErrorResponse,
   constructSuccessResponse,
 } from '../common/wrappers';
+import { VerificationTokenDto } from '../user/Dto/user.types';
 
 @Injectable()
 export class AuthService {
@@ -40,7 +37,10 @@ export class AuthService {
 
   async login(loginUser: any) {
     try {
-      let user: any = await this.validateUser(loginUser.email, loginUser.password);
+      let user: any = await this.validateUser(
+        loginUser.email,
+        loginUser.password,
+      );
 
       const response = {
         user: undefined,
@@ -52,7 +52,7 @@ export class AuthService {
         sub: user._id,
         userRole: user.userRole,
       };
-      const accessToken = this.jwtService.sign(payload);
+      const accessToken = await this.getAccessToken(payload);
 
       response.accessToken = accessToken;
 
@@ -68,5 +68,22 @@ export class AuthService {
     } catch (error) {
       return constructErrorResponse(error);
     }
+  }
+  async getAccessToken(payload) {
+    return this.jwtService.sign(payload);
+  }
+  async verifyEmailCode(data: VerificationTokenDto) {
+    const { user } = await this.userService.verifyToken(data);
+
+    const payload = {
+      email: user.email,
+      sub: user._id,
+      userRole: user.userRole,
+    };
+    const accessToken = await this.getAccessToken(payload);
+    return constructSuccessResponse(
+      { accessToken },
+      'Token verified successfully!',
+    );
   }
 }

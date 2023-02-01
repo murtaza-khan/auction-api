@@ -1,6 +1,6 @@
 import { AuthService } from './auth.service';
 import { Body, Controller, Post, Request, UseGuards } from '@nestjs/common';
-import { LoginDto, UserDto } from '../user/Dto/user.types';
+import { LoginDto, UserDto, VerificationTokenDto } from '../user/Dto/user.types';
 import { UserService } from '../user/user.service';
 import { ApiTags } from '@nestjs/swagger';
 import { Public } from './public.decorator';
@@ -23,5 +23,11 @@ export class AuthController {
   @Post('user/login')
   async login(@Body() data: LoginDto) {
     return this.authService.login(data);
+  }
+
+  @ApiTags('Auth - Email Code')
+  @Post('verify-email-code')
+  async verifyToken(@Body() data: VerificationTokenDto): Promise<any> {
+    return this.authService.verifyEmailCode(data);
   }
 }

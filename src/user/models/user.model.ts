@@ -26,6 +26,15 @@ export class User extends BaseModel {
   password: string;
 
   @Prop()
+  verificationToken: number;
+
+  @Prop()
+  isEmailVerified: boolean;
+
+  @Prop()
+  emailVerificationAttempts: number;
+
+  @Prop()
   notificationToken: string;
 
   @Prop({ type: String, enum: UserRole })

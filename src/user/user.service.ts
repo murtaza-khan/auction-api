@@ -9,6 +9,8 @@ import {
 import { UserDocument } from './models/user.model';
 import { BidDocument } from './models/bid.model';
 import { NotificationsService } from '../common/services/notification.service';
+import { VerificationTokenDto } from './Dto/user.types';
+import { VerifyCodeSource } from 'src/common/enums';
 
 @Injectable()
 export class UserService {
@@ -26,6 +28,7 @@ export class UserService {
 
       user = JSON.parse(JSON.stringify(user));
       delete user.password;
+      await this.generateToken(user.email);
       return constructSuccessResponse(user, 'User registered successfully!');
     } catch (error) {
       return constructErrorResponse(error);
@@ -75,6 +78,80 @@ export class UserService {
     } catch (error) {
       return constructErrorResponse(error);
     }
+  }
+
+  async generateToken(email) {
+    const verificationToken = Math.floor(100000 + Math.random() * 900000);
+
+    const response = await this.userModel.updateOne(
+      {
+        email,
+      },
+      { verificationToken: 123456 },
+    );
+    return response;
+  }
+
+  async verifyToken({
+    email,
+    source,
+    verificationToken,
+  }: VerificationTokenDto) {
+    const user = await this.userModel.findOne({
+      email,
+    });
+    if (!user) {
+      return constructErrorResponse({ message: 'Invalid code', status: 400 });
+    }
+
+    if (!user.verificationToken) {
+      return constructErrorResponse({
+        message: 'Code not generated',
+        status: 400,
+      });
+    }
+
+    if (source === VerifyCodeSource.EMAIL_VERIFICATION) {
+      if (user.isEmailVerified) {
+        return constructErrorResponse({
+          message: 'You email is already verified',
+          status: 409,
+        });
+      }
+    }
+
+    if (user.emailVerificationAttempts >= 10) {
+      return constructErrorResponse({
+        message: 'Account is blocked, please contact support',
+        status: 403,
+      });
+    }
+
+    if (user.verificationToken === verificationToken) {
+      // Code in valid
+      const response = await this.userModel.updateOne(
+        {
+          email,
+        },
+        {
+          isEmailVerified: true,
+          emailVerificationAttempts: 0,
+          verificationToken: null,
+        },
+      );
+      return { response, user };
+    }
+
+    // Code in invalid
+    await this.userModel.updateOne(
+      { email },
+      {
+        emailVerificationAttempts: user.emailVerificationAttempts
+          ? user.emailVerificationAttempts + 1
+          : 1,
+      },
+    );
+    return constructErrorResponse({ message: 'Invalid code!', status: 400 });
   }
 
   async createBid(data: any): Promise<any> {

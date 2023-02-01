@@ -4,12 +4,12 @@ import {
   IsString,
   IsNotEmpty,
   IsEnum,
-  IsObject,
   IsNotEmptyObject,
   IsOptional,
+  IsNumber,
 } from 'class-validator';
 import { Location } from '../../item/Dto/item.types';
-import { UserRole } from '../../common/enums';
+import { UserRole, VerifyCodeSource } from '../../common/enums';
 
 class DefaultMessageType {
   @IsString()
@@ -153,6 +153,29 @@ class NotificationDto {
   @IsOptional()
   email: string;
 }
+
+class VerificationTokenDto {
+  @ApiProperty({ type: String, enum: VerifyCodeSource })
+  @IsEnum(VerifyCodeSource)
+  @IsString()
+  @IsOptional()
+  source: string = VerifyCodeSource.EMAIL_VERIFICATION;
+
+  @ApiProperty({
+    type: String,
+  })
+  @IsString()
+  @IsNotEmpty()
+  @IsEmail()
+  email: string;
+
+  @ApiProperty({
+    type: Number,
+  })
+  @IsNumber()
+  @IsNotEmpty()
+  verificationToken: number;
+}
 export {
   UserDto,
   DefaultMessageType,
@@ -160,4 +183,5 @@ export {
   BidDto,
   UpdateBidDto,
   NotificationDto,
+  VerificationTokenDto
 };
